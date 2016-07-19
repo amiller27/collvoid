@@ -1111,7 +1111,7 @@ namespace collvoid {
             catch (tf::TransformException ex) {
                 ROS_ERROR("%s", ex.what());
                 ROS_ERROR("point transform failed");
-                break;
+                return;
             };
         }
         //    if (!convex_ || orca_) {
