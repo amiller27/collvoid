@@ -116,6 +116,16 @@ namespace collvoid_local_planner {
     bool latch_xy_goal_tolerance_, xy_tolerance_latch_, rotating_to_goal_, ignore_goal_yaw_, delete_observations_, been_in_obstacle_;
     
     unsigned int current_waypoint_;
+
+    // recovery status variables
+    tf::Stamped<tf::Pose> last_point_close_to_path_;
+    ros::Time last_time_close_to_path_;
+
+    bool following_recovery_path_;
+
+    std::vector<geometry_msgs::PoseStamped> global_recovery_plan_,
+                                            transformed_recovery_plan_;
+
     //params ORCA
     double  time_horizon_obst_;
     double eps_;

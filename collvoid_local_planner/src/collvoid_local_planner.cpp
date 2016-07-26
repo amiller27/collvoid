@@ -624,16 +624,34 @@ namespace collvoid_local_planner {
         target_pose.frame_id_ = robot_base_frame_;
 
         if (!skip_next_) {
-            if (!transformGlobalPlan(*tf_, global_plan_, *costmap_ros_, global_frame_, transformed_plan_)) {
-                ROS_WARN("Could not transform the global plan to the frame of the controller");
-                return false;
+            geometry_msgs::PoseStamped global_pose_msg;
+            tf::poseStampedTFToMsg(global_pose, global_pose_msg);
+
+            if (closeToPath(global_pose_msg, global_plan_, me_->getRadius() * 1.5)) {
+                last_point_close_to_path_ = global_pose;
+                last_time_close_to_path_ = ros::Time::now();
             }
-            geometry_msgs::PoseStamped target_pose_msg;
-            current_waypoint_ = findBestWaypoint(transformed_plan_,
-                                                 target_pose_msg,
-                                                 global_pose);
+
+            if ((ros::Time::now() - last_time_close_to_path_).toSec() > 4) {
+                target_pose = last_point_close_to_path_;
+            }
+            else {
+                following_recovery_path_ = false;
+
+                if (!transformGlobalPlan(*tf_, global_plan_, *costmap_ros_, global_frame_, transformed_plan_)) {
+                    ROS_WARN("Could not transform the global plan to the frame of the controller");
+                    return false;
+                }
+                geometry_msgs::PoseStamped target_pose_msg;
+                current_waypoint_ = findBestWaypoint(transformed_plan_,
+                                                     target_pose_msg,
+                                                     global_pose);
+                tf::poseStampedMsgToTF(transformed_plan_[current_waypoint_], target_pose);
+            }
         }
-        tf::poseStampedMsgToTF(transformed_plan_[current_waypoint_], target_pose);
+        else {
+            tf::poseStampedMsgToTF(transformed_plan_[current_waypoint_], target_pose);
+        }
 
 
         geometry_msgs::Twist res;
