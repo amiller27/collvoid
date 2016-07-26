@@ -761,7 +761,7 @@ namespace collvoid {
 
     }
 
-    Vector2 calculateNewVelocitySampled(std::vector<VelocitySample> &samples, const std::vector<VO> &truncated_vos,
+    Vector2 calculateNewVelocitySampled(const char* id, std::vector<VelocitySample> &samples, const std::vector<VO> &truncated_vos,
                                         const Vector2 &pref_vel, double max_speed, const Vector2 &position, double heading, const Vector2& cur_speed, bool use_truncation,
                                         std::vector<geometry_msgs::Point> footprint_spec,
                                         costmap_2d::Costmap2D* costmap,
@@ -818,9 +818,10 @@ namespace collvoid {
         }
         //ROS_ERROR("min_cost %f", min_cost);
         if (min_cost == DBL_MAX) {
-            ROS_ERROR("No allowed velocities found, using least bad option");
+            ROS_ERROR("No allowed velocities found for robot %s", id);
             best_vel = best_vel_if_all_footprints_invalid;
         }
+        ROS_WARN("Calculated velocity (%f, %f) for robot %s with %lu samples", best_vel.x(), best_vel.y(), id, samples.size());
         return best_vel;
     }
 

@@ -143,7 +143,7 @@ namespace collvoid {
 
     double calculateVelCosts(const Vector2 &test_vel, const std::vector<VO> &truncated_vos, bool use_truncation);
 
-    Vector2 calculateNewVelocitySampled(std::vector<VelocitySample> &samples, const std::vector<VO> &truncated_vos,
+    Vector2 calculateNewVelocitySampled(const char* id, std::vector<VelocitySample> &samples, const std::vector<VO> &truncated_vos,
                                         const Vector2 &pref_vel, double max_speed,
                                         const Vector2 &position, double heading,
                                         const Vector2 &cur_speed, bool use_truncation,

@@ -29,6 +29,7 @@
 
 
 #include "collvoid_local_planner/Agent.h"
+#include "collvoid_local_planner/ROSAgent.h"
 #include "collvoid_local_planner/orca.h"
 #include <boost/foreach.hpp>
 #include <angles/angles.h>
@@ -93,7 +94,7 @@ namespace collvoid {
             computeAgentVOs();
         }
         computeHumanVOs();
-        new_velocity_ = calculateNewVelocitySampled(samples_, all_vos_, pref_velocity, max_speed_x_, odom_pose_, heading_, velocity_, use_truncation_,
+        new_velocity_ = calculateNewVelocitySampled(((ROSAgent*)this)->id_.c_str(), samples_, all_vos_, pref_velocity, max_speed_x_, odom_pose_, heading_, velocity_, use_truncation_,
                                                     footprint_spec_, costmap_, world_model_);
     }
 
