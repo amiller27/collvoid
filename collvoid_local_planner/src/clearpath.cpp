@@ -780,6 +780,9 @@ namespace collvoid {
         double min_cost = DBL_MAX;
         Vector2 best_vel;
 
+        double min_cost_if_all_footprints_invalid = DBL_MAX;
+        Vector2 best_vel_if_all_footprints_invalid;
+
         double cur_x, cur_y, pos_x, pos_y;
         cur_x = position.x();
         cur_y = position.y();
@@ -800,19 +803,24 @@ namespace collvoid {
 
             //ROS_ERROR("footprint_cost %f", footprint_cost);
             if (footprint_cost < 0.) {
-                samples[i].cost = -1;
-                continue;
+                samples[i].cost = cost;
+                if (cost < min_cost_if_all_footprints_invalid) {
+                    min_cost_if_all_footprints_invalid = cost;
+                    best_vel_if_all_footprints_invalid = cur.velocity;
+                }
+            } else {
+                samples[i].cost = cost + footprint_cost;
+                if (cost < min_cost) {
+                    min_cost = cost;
+                    best_vel = cur.velocity;
+                }
             }
-            samples[i].cost = cost + footprint_cost;
-
-
-            if (cost < min_cost) {
-                min_cost = cost;
-                best_vel = cur.velocity;
-            }
-
         }
         //ROS_ERROR("min_cost %f", min_cost);
+        if (min_cost == DBL_MAX) {
+            ROS_ERROR("No allowed velocities found, using least bad option");
+            best_vel = best_vel_if_all_footprints_invalid;
+        }
         return best_vel;
     }
 
