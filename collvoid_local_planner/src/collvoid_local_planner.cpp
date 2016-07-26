@@ -536,7 +536,7 @@ namespace collvoid_local_planner {
         costmap_ros_->getRobotPose(global_pose);
         costmap_2d::Costmap2D *costmap = costmap_ros_->getCostmap();
 
-        return base_local_planner::isGoalReached(*tf_,
+        bool result = base_local_planner::isGoalReached(*tf_,
                                                  global_plan_,
                                                  *costmap,
                                                  costmap_ros_->getGlobalFrameID(),
@@ -545,6 +545,10 @@ namespace collvoid_local_planner {
                                                  rot_stopped_velocity_,
                                                  trans_stopped_velocity_,
                                                  xy_goal_tolerance_, yaw_goal_tolerance_);
+        if (result) {
+            ROS_ERROR("Goal reached");
+        }
+        return result;
     }
 
 
