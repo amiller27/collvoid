@@ -301,7 +301,7 @@ namespace collvoid {
         tf::TransformListener *tf_;
 
         //subscribers and publishers
-        ros::Publisher lines_pub_, neighbors_pub_, humans_pub_, polygon_pub_, vo_pub_, me_pub_, samples_pub_, speed_pub_, position_share_pub_, obstacles_pub_;
+        ros::Publisher lines_pub_, neighbors_pub_, humans_pub_, polygon_pub_, vo_pub_, me_pub_, samples_pub_, speed_pub_, target_speed_pub_, position_share_pub_, obstacles_pub_;
         ros::Subscriber amcl_posearray_sub_, position_share_sub_, people_sub_, odom_sub_;
 
 

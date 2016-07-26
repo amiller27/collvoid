@@ -191,6 +191,7 @@ namespace collvoid {
         samples_pub_ = nh.advertise<visualization_msgs::MarkerArray>("samples", 1);
         polygon_pub_ = nh.advertise<geometry_msgs::PolygonStamped>("convex_hull", 1);
         speed_pub_ = nh.advertise<visualization_msgs::Marker>("speed", 1);
+        target_speed_pub_ = nh.advertise<visualization_msgs::Marker>("pref_speed", 1);
         position_share_pub_ = nh.advertise<collvoid_msgs::PoseTwistWithCovariance>("/position_share_out", 1);
 
         obstacles_pub_ = nh.advertise<visualization_msgs::Marker>("obstacles", 1);
@@ -289,6 +290,8 @@ namespace collvoid {
 
 
     void ROSAgent::computeNewVelocity(Vector2 pref_velocity, geometry_msgs::Twist &cmd_vel) {
+        publishHoloSpeed(position_, pref_velocity, global_frame_, base_frame_, target_speed_pub_);
+
         boost::mutex::scoped_lock lock(me_lock_);
         //Forward project agents
         double time_dif = (ros::Time::now() - this->last_seen_).toSec();
@@ -407,6 +410,7 @@ namespace collvoid {
     void ROSAgent::computeClearpathVelocity(Vector2 pref_velocity) {
         //account for nh error
         boost::mutex::scoped_lock lock(neighbors_lock_);
+
 
 
         tf::Stamped<tf::Pose> global_pose;

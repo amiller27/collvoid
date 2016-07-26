@@ -276,6 +276,7 @@ namespace collvoid_local_planner {
             skip_next_ = false;
             g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
             l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
+            latch_pub_ = private_nh.advertise<std_msgs::Bool>("latch", 1);
             std::string move_base_name = ros::this_node::getName();
             //ROS_ERROR("%s name of node", thisname.c_str());
             obstacles_sub_ = nh.subscribe(move_base_name + "/local_costmap/obstacles", 1,
@@ -560,6 +561,9 @@ namespace collvoid_local_planner {
         double goal_th = yaw;
 
         //check to see if we've reached the goal position
+        std_msgs::Bool latch_msg;
+        latch_msg.data = xy_tolerance_latch_;
+        latch_pub_.publish(latch_msg);
         if (xy_tolerance_latch_ ||
             (base_local_planner::getGoalPositionDistance(global_pose, goal_x, goal_y) < xy_goal_tolerance_ - EPSILON)) {
 

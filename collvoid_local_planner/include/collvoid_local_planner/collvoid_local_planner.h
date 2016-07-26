@@ -38,6 +38,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/GridCells.h>
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <dynamic_reconfigure/server.h>
 
 #include "collvoid_local_planner/ROSAgent.h"
@@ -125,7 +126,7 @@ namespace collvoid_local_planner {
     std::string robot_base_frame_; ///< @brief Used as the base frame id of the robot
     std::string my_id_;
     std::vector<geometry_msgs::PoseStamped> global_plan_, transformed_plan_;
-    ros::Publisher g_plan_pub_, l_plan_pub_;
+    ros::Publisher g_plan_pub_, l_plan_pub_, latch_pub_;
     ros::Subscriber obstacles_sub_;
 
   };//end class
