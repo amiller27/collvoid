@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
+#include <cmath>
 
 #include "collvoid_local_planner/collvoid_publishers.h"
 
@@ -50,7 +50,7 @@ namespace collvoid {
         geometry_msgs::Point p;
         p.x = pos.x();
         p.y = pos.y();
-        p.z = 0.2;
+        p.z = 0.3;
         line_list.points.push_back(p);
         p.x = p.x + vel.x();
         p.y = p.y + vel.y();
@@ -152,14 +152,26 @@ namespace collvoid {
             sphere.scale.x = 0.1;
             sphere.scale.y = 0.1;
             sphere.scale.z = 0.1;
-            sphere.color.r = 0.5;
+
+            float h = 30 + 300 / (1 + exp(-points[i].cost / 2));
+            float x = 1 - fabs(fmod(h / 60, 2) - 1);
+            float r, g, b;
+            if (h < 60) { r = 1; g = x; b = 0; }
+            else if (h < 120) { r = x; g = 1; b = 0; }
+            else if (h < 180) { r = 0; g = 1; b = x; }
+            else if (h < 240) { r = 0; g = x; b = 1; }
+            else if (h < 300) { r = x; g = 0; b = 1; }
+            else { r = 1; g = 0; b = x; }
+            sphere.color.r = r;
+            sphere.color.g = g;
+            sphere.color.b = b;
             sphere.color.a = 1.0;
+
             sphere.id = i;
             geometry_msgs::Point p;
             p.x = pos.x() + points[i].velocity.x();
             p.y = pos.y() + points[i].velocity.y();
-            p.z = points[i].cost;
-            //p.z = 0.1;
+            p.z = 0;
             sphere.points.push_back(p);
             sphere.pose.position.x = p.x;
             sphere.pose.position.y = p.y;
