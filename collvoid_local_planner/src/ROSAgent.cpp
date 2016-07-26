@@ -1498,19 +1498,64 @@ namespace collvoid {
 
 
     bool ROSAgent::isInStaticObstacle() {
+        if (convex_) {
+            bool collision = false;
 
-        BOOST_FOREACH(Vector2 obst_center, obstacle_centers_) {
-                        float dx = obst_center.x() - base_odom_.pose.pose.position.x;
-                        float dy = obst_center.y() - base_odom_.pose.pose.position.y;
-                        float d = sqrt(dx * dx + dy * dy);
-
-                        if (d < footprint_radius_ * 1.2) {
-                            ROS_WARN("%s: I think I am in collision %f", id_.c_str(), d);
-                            return true;
+            std::vector<Vector2> own_footprint;
+            BOOST_FOREACH(geometry_msgs::Point32 p, footprint_msg_.polygon.points) {
+                            own_footprint.push_back(Vector2(p.x, p.y));
                         }
 
-                    }
-        return false;
+            std::vector<Obstacle> obstacles = getObstacles();
+
+            BOOST_FOREACH(Obstacle obst, obstacles) {
+                                //obst.points = rotateFootprint(obst.points, heading_);
+                                Vector2 obst_center = (obst.points[0] + obst.points[2])/2.;
+                                double dist = distSqPointLineSegment(obst.points[0], obst.points[1], position_);
+                                dist = std::min(dist, distSqPointLineSegment(obst.points[1], obst.points[2], position_));
+                                dist = std::min(dist, distSqPointLineSegment(obst.points[2], obst.points[3], position_));
+                                dist = std::min(dist, distSqPointLineSegment(obst.points[0], obst.points[3], position_));
+
+                                std::vector<Vector2> obst_footprint;
+                                BOOST_FOREACH(Vector2 p, obst.points) {
+                                                obst_footprint.push_back(p-obst_center);
+                                            }
+
+                                std::vector<Vector2> mink_sum = minkowskiSum(own_footprint, obst_footprint);
+
+                                Vector2 rel_position = obst_center - position_;
+                                Vector2 null;
+                                collision = true;
+                                for (int i = 0; i < (int) mink_sum.size(); i++) {
+                                    collvoid::Vector2 first = rel_position + mink_sum[i];
+                                    collvoid::Vector2 second = rel_position + mink_sum[(i+1) % mink_sum.size()];
+                                    if (signedDistPointToLineSegment(first, second, null) < 0) {
+                                        collision = false;
+                                    }
+                                }
+
+                                if (collision) {
+                                    break;
+                                }
+                        }
+            if (collision) {
+                ROS_ERROR("Collision with static obstacle detected");
+            }
+            return collision;
+        } else {
+            BOOST_FOREACH(Vector2 obst_center, obstacle_centers_) {
+                            float dx = obst_center.x() - base_odom_.pose.pose.position.x;
+                            float dy = obst_center.y() - base_odom_.pose.pose.position.y;
+                            float d = sqrt(dx * dx + dy * dy);
+
+                            if (d < footprint_radius_ * 1.2) {
+                                ROS_WARN("%s: I think I am in collision %f", id_.c_str(), d);
+                                return true;
+                            }
+
+                        }
+            return false;
+        }
     }
 
     // Creates a inlfacted rectangle from the line that represents the obstacle
