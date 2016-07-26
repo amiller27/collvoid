@@ -70,6 +70,9 @@ namespace collvoid_local_planner {
     int findBestWaypoint(std::vector<geometry_msgs::PoseStamped>& transformed_plan,
                          geometry_msgs::PoseStamped& target_pose,
                          const tf::Stamped<tf::Pose>& global_pose);
+    bool closeToPath(geometry_msgs::PoseStamped& position,
+                     std::vector<geometry_msgs::PoseStamped>& path,
+                     double tolerance);
 
     void obstaclesCallback(const nav_msgs::GridCells::ConstPtr& msg);
 

@@ -856,6 +856,39 @@ namespace collvoid_local_planner {
         return true;
     }
 
+    bool CollvoidLocalPlanner::closeToPath(geometry_msgs::PoseStamped& position, std::vector<geometry_msgs::PoseStamped>& path, double tolerance) {
+        if (path.size() == 0) {
+            return false;
+        }
+
+        // convert position into the frame of the path
+        tf::Stamped<tf::Pose> robot_pose;
+        tf::poseStampedMsgToTF(position, robot_pose);
+        tf_->transformPose(path[0].header.frame_id, robot_pose, robot_pose);
+        Vector2 position_vector(robot_pose.getOrigin().x(),
+                                robot_pose.getOrigin().y());
+
+        double tolerance_sq = tolerance * tolerance;
+
+        Vector2 last_position(path[0].pose.position.x,
+                              path[0].pose.position.y);
+        for (int i = 0; i < path.size() - 1; i++) {
+
+            Vector2 next_position(path[i+1].pose.position.x,
+                                  path[i+1].pose.position.y);
+            double dist_sq = distSqPointLineSegment(last_position,
+                                                    next_position,
+                                                    position_vector);
+            if (dist_sq < tolerance_sq) {
+                return true;
+            }
+
+            last_position = next_position;
+        }
+
+        return false;
+    }
+
     void CollvoidLocalPlanner::obstaclesCallback(const nav_msgs::GridCells::ConstPtr &msg) {
         size_t num_obst = msg->cells.size();
         boost::mutex::scoped_lock lock(me_->obstacle_lock_);
