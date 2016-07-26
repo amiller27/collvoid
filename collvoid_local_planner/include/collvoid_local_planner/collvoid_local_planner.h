@@ -66,8 +66,10 @@ namespace collvoid_local_planner {
     bool stopWithAccLimits(const tf::Stamped<tf::Pose>& global_pose, const tf::Stamped<tf::Pose>& robot_vel, geometry_msgs::Twist& cmd_vel);
 
 
-    bool transformGlobalPlan(const tf::TransformListener& tf, const std::vector<geometry_msgs::PoseStamped>& global_plan, const costmap_2d::Costmap2DROS& costmap, const std::string& global_frame, std::vector<geometry_msgs::PoseStamped>& transformed_plan);
-    void findBestWaypoint(geometry_msgs::PoseStamped& target_pose, const tf::Stamped<tf::Pose>& global_pose);
+    bool transformGlobalPlan(const tf::TransformListener& tf, const std::vector<geometry_msgs::PoseStamped>& global_plan, costmap_2d::Costmap2DROS& costmap, const std::string& global_frame, std::vector<geometry_msgs::PoseStamped>& transformed_plan);
+    int findBestWaypoint(std::vector<geometry_msgs::PoseStamped>& transformed_plan,
+                         geometry_msgs::PoseStamped& target_pose,
+                         const tf::Stamped<tf::Pose>& global_pose);
 
     void obstaclesCallback(const nav_msgs::GridCells::ConstPtr& msg);
 

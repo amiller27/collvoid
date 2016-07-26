@@ -629,7 +629,9 @@ namespace collvoid_local_planner {
                 return false;
             }
             geometry_msgs::PoseStamped target_pose_msg;
-            findBestWaypoint(target_pose_msg, global_pose);
+            current_waypoint_ = findBestWaypoint(transformed_plan_,
+                                                 target_pose_msg,
+                                                 global_pose);
         }
         tf::poseStampedMsgToTF(transformed_plan_[current_waypoint_], target_pose);
 
@@ -706,32 +708,33 @@ namespace collvoid_local_planner {
         return true;
     }
 
-    void CollvoidLocalPlanner::findBestWaypoint(geometry_msgs::PoseStamped &target_pose,
-                                                const tf::Stamped<tf::Pose> &global_pose) {
-        current_waypoint_ = 0;
+    int CollvoidLocalPlanner::findBestWaypoint(std::vector<geometry_msgs::PoseStamped> &transformed_plan,
+                                               geometry_msgs::PoseStamped &target_pose,
+                                               const tf::Stamped<tf::Pose> &global_pose) {
+        int current_waypoint = 0;
         double min_dist = DBL_MAX;
-        for (size_t i = current_waypoint_; i < transformed_plan_.size(); i++) {
+        for (size_t i = current_waypoint; i < transformed_plan.size(); i++) {
             //double y = global_pose.getOrigin().y();
             //double x = global_pose.getOrigin().x();
-            double dist = base_local_planner::getGoalPositionDistance(global_pose, transformed_plan_[i].pose.position.x,
-                                                                      transformed_plan_[i].pose.position.y);
+            double dist = base_local_planner::getGoalPositionDistance(global_pose, transformed_plan[i].pose.position.x,
+                                                                      transformed_plan[i].pose.position.y);
             if (dist < me_->getRadius() || dist < min_dist) {
                 min_dist = dist;
-                target_pose = transformed_plan_[i];
-                current_waypoint_ = i;
+                target_pose = transformed_plan[i];
+                current_waypoint = i;
 
             }
         }
-        //ROS_DEBUG("waypoint = %d, of %d", current_waypoint_, transformed_plan_.size());
+        //ROS_DEBUG("waypoint = %d, of %d", current_waypoint, transformed_plan.size());
 
-        //if (min_dist > pt_agg_->getRadius() && transformed_plan_.size()>2) //lets first get to the begin pose of the plan
+        //if (min_dist > pt_agg_->getRadius() && transformed_plan.size()>2) //lets first get to the begin pose of the plan
         //  return;
 
-        if (current_waypoint_ == transformed_plan_.size() - 1) //I am at the end of the plan
-            return;
+        if (current_waypoint == transformed_plan.size() - 1) //I am at the end of the plan
+            return current_waypoint;
 
-        double dif_x = transformed_plan_[current_waypoint_ + 1].pose.position.x - target_pose.pose.position.x;
-        double dif_y = transformed_plan_[current_waypoint_ + 1].pose.position.y - target_pose.pose.position.y;
+        double dif_x = transformed_plan[current_waypoint + 1].pose.position.x - target_pose.pose.position.x;
+        double dif_y = transformed_plan[current_waypoint + 1].pose.position.y - target_pose.pose.position.y;
 
         double plan_dir = atan2(dif_y, dif_x);
 
@@ -742,30 +745,31 @@ namespace collvoid_local_planner {
         //size_t look_ahead_ind = 0;
         //bool look_ahead = false;
 
-        for (size_t i = current_waypoint_ + 1; i < transformed_plan_.size(); i++) {
-            dif_x = transformed_plan_[i].pose.position.x - target_pose.pose.position.x;
-            dif_y = transformed_plan_[i].pose.position.y - target_pose.pose.position.y;
+        for (size_t i = current_waypoint + 1; i < transformed_plan.size(); i++) {
+            dif_x = transformed_plan[i].pose.position.x - target_pose.pose.position.x;
+            dif_y = transformed_plan[i].pose.position.y - target_pose.pose.position.y;
 
             dif_ang = atan2(dif_y, dif_x);
             //target_pose = transformed_plan_[current_waypoint_];
 
             if (fabs(plan_dir - dif_ang) > 1.0 * yaw_goal_tolerance_) {
-                target_pose = transformed_plan_[i - 1];
-                current_waypoint_ = i - 1;
-                //ROS_DEBUG("waypoint = %d, of %d", current_waypoint_, transformed_plan_.size());
+                target_pose = transformed_plan[i - 1];
+                current_waypoint = i - 1;
+                //ROS_DEBUG("waypoint = %d, of %d", current_waypoint_, transformed_plan.size());
 
-                return;
+                return current_waypoint;
             }
         }
-        target_pose = transformed_plan_.back();
-        current_waypoint_ = transformed_plan_.size() - 1;
+        target_pose = transformed_plan.back();
+        current_waypoint = transformed_plan.size() - 1;
+        return current_waypoint;
 
 
     }
 
     bool CollvoidLocalPlanner::transformGlobalPlan(const tf::TransformListener &tf,
                                                    const std::vector<geometry_msgs::PoseStamped> &global_plan,
-                                                   const costmap_2d::Costmap2DROS &costmap,
+                                                   costmap_2d::Costmap2DROS &costmap,
                                                    const std::string &global_frame,
                                                    std::vector<geometry_msgs::PoseStamped> &transformed_plan) {
         const geometry_msgs::PoseStamped &plan_pose = global_plan[0];
@@ -786,7 +790,7 @@ namespace collvoid_local_planner {
             //let's get the pose of the robot in the frame of the plan
             tf::Stamped<tf::Pose> robot_pose;
             robot_pose.setIdentity();
-            robot_pose.frame_id_ = costmap_ros_->getBaseFrameID();
+            robot_pose.frame_id_ = costmap.getBaseFrameID();
             robot_pose.stamp_ = ros::Time();
             tf.transformPose(plan_pose.header.frame_id, robot_pose, robot_pose);
 
@@ -797,11 +801,11 @@ namespace collvoid_local_planner {
             double sq_dist = DBL_MAX;
 
             unsigned int cur_waypoint = 0;
-            for (size_t i = 0; i < global_plan_.size(); i++) {
+            for (size_t i = 0; i < global_plan.size(); i++) {
                 //double y = robot_pose.getOrigin().y();
                 //double x = robot_pose.getOrigin().x();
-                double dist = base_local_planner::getGoalPositionDistance(robot_pose, global_plan_[i].pose.position.x,
-                                                                          global_plan_[i].pose.position.y);
+                double dist = base_local_planner::getGoalPositionDistance(robot_pose, global_plan[i].pose.position.x,
+                                                                          global_plan[i].pose.position.y);
                 if (dist < sqrt(sq_dist)) {
                     sq_dist = dist * dist;
                     cur_waypoint = i;
