@@ -109,7 +109,8 @@ namespace collvoid{
         std::vector<VO> all_vos_, agent_vos_, static_vos_, human_vos_;
         std::vector<VelocitySample> samples_;
 
-
+        // Clearpath times velocity has been near zero
+        int times_near_zero_;
 
         std::vector<boost::shared_ptr<Agent> > agent_neighbors_, human_neighbors_;
 

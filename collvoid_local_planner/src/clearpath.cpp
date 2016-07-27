@@ -874,7 +874,8 @@ namespace collvoid {
                                        const Vector2 &position, double heading,
                                        std::vector<geometry_msgs::Point> footprint_spec,
                                        costmap_2d::Costmap2D* costmap,
-                                       base_local_planner::WorldModel* world_model) {
+                                       base_local_planner::WorldModel* world_model,
+                                       bool add_cost_near_zero) {
 
         if (!isWithinAdditionalConstraints(additional_constraints, pref_vel)) {
             BOOST_FOREACH (Line line, additional_constraints) {
@@ -1140,10 +1141,14 @@ namespace collvoid {
                                         }
                                     }
                                     double cost = 0;
-                                    cost += 2 * sqrt(absSqr(cur.velocity - pref_vel));
-                                    cost += 2 * (1. - minDistToVOs(agent_vos, vel, use_truncation));
-                                    cost += 3. * ( 1. - minDistToVOs(human_vos, vel, use_truncation));
+                                    cost += 3 * sqrt(absSqr(cur.velocity - pref_vel));
+                                    cost += std::max(0., 2 * (1. - minDistToVOs(agent_vos, vel, use_truncation)));
+                                    cost += std::max(0., 3. * ( 1. - minDistToVOs(human_vos, vel, use_truncation)));
                                     cost += 1 * sqrt(absSqr(cur.velocity - cur_vel));
+                                    if (add_cost_near_zero) {
+                                        ROS_WARN("Adding cost near zero");
+                                        cost += std::max(0., 2 * (1 - sqrt(absSqr(cur.velocity))));
+                                    }
 
                                     sample.cost = cost;
                                     if (cost < bestDist) {

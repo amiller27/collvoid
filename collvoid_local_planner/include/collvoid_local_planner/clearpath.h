@@ -112,7 +112,8 @@ namespace collvoid {
                                         const Vector2 &position, double heading,
                                        std::vector<geometry_msgs::Point> footprint_spec,
                                         costmap_2d::Costmap2D* costmap,
-                                        base_local_planner::WorldModel* world_model);
+                                        base_local_planner::WorldModel* world_model,
+                                        bool add_cost_near_zero = false);
 
     Vector2 evaluateClearpathSamples(std::vector<VelocitySample> &sorted_samples, const std::vector<VO> &truncated_vos, const std::vector<VO> &agent_vos,const std::vector<VO> &human_vos,
                                      const std::vector<Line> &additional_constraints,
