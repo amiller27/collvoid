@@ -99,6 +99,7 @@ namespace collvoid_local_planner {
     double max_vel_y_, min_vel_y_;
     double max_vel_th_, min_vel_th_, min_vel_th_inplace_;
     double acc_lim_x_, acc_lim_y_, acc_lim_th_;
+    double path_reset_time_, path_reset_tolerance_multiplier_;
     double wheel_base_, radius_;
     double max_vel_with_obstacles_;
 

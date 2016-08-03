@@ -27,6 +27,9 @@ CollvoidLocalPlanner:
   ignore_goal_yaw: false
   global_frame: /map
 
+  path_reset_time: 4
+  path_reset_tolerance_multiplier: 2
+
   time_horizon_obst: 10.0
   time_to_holo: 0.4
   min_error_holo: 0.02

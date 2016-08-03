@@ -125,6 +125,11 @@ namespace collvoid_local_planner {
             getParam(private_nh, "acc_lim_y", &acc_lim_y_);
             getParam(private_nh, "acc_lim_th", &acc_lim_th_);
 
+            // path reset parameters
+            getParam(private_nh, "path_reset_time", &path_reset_time_);
+            getParam(private_nh, "path_reset_tolerance_multiplier",
+                     &path_reset_tolerance_multiplier_);
+
             me_->setAccelerationConstraints(acc_lim_x_, acc_lim_y_, acc_lim_th_);
 
             //holo_robot
@@ -321,6 +326,9 @@ namespace collvoid_local_planner {
         acc_lim_x_ = config.acc_lim_x;
         acc_lim_y_ = config.acc_lim_y;
         acc_lim_th_ = config.acc_lim_th;
+
+        path_reset_time_ = config.path_reset_time;
+        path_reset_tolerance_multiplier_ = config.path_reset_tolerance_multiplier;
 
         max_vel_with_obstacles_ = config.max_vel_with_obstacles;
         max_vel_x_ = config.max_vel_x;
@@ -627,12 +635,12 @@ namespace collvoid_local_planner {
             geometry_msgs::PoseStamped global_pose_msg;
             tf::poseStampedTFToMsg(global_pose, global_pose_msg);
 
-            if (closeToPath(global_pose_msg, global_plan_, me_->getRadius() * 1.5)) {
+            if (closeToPath(global_pose_msg, global_plan_, me_->getRadius() * path_reset_tolerance_multiplier_)) {
                 last_point_close_to_path_ = global_pose;
                 last_time_close_to_path_ = ros::Time::now();
             }
 
-            if ((ros::Time::now() - last_time_close_to_path_).toSec() > 4) {
+            if ((ros::Time::now() - last_time_close_to_path_).toSec() > path_reset_time_) {
                 target_pose = last_point_close_to_path_;
             }
             else {
