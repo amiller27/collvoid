@@ -79,10 +79,10 @@ class DetectObstacles(object):
 
         output_img = (output/max_range * 400 + 400).astype(int)
         output_img_points = np.array([[output_img[0][x], output_img[1][x]] for x in range(0, len(output_img[0]))])
-        if not output_img_points:
+        if not output_img_points.size:
             rospy.logerr('%s'%output_img_points)
         output_img_points = output_img_points[ranges < max_range]
-        if not output_img_points:
+        if not output_img_points.size:
             rospy.logerr('%s'%output_img_points)
 
         current_obstacles = []
@@ -90,10 +90,11 @@ class DetectObstacles(object):
 
         for p in output_img_points:
             current_list = self.add_point(p, current_list, current_obstacles)
-        if not output_img_points:
+        assert current_list or not output_img_points.size
+        if not output_img_points.size:
             rospy.logerr('output_img_points is empty')
-        if not current_list:
-            rospy.logerr("current_list is empty in detect_obstacles")
+        if not current_obstacles:
+            rospy.logerr("current_obstacles is empty in detect_obstacles")
         h = cv2.convexHull(np.array(current_list))
         rect = cv2.minAreaRect(h)
         box = cv2.cv.BoxPoints(rect)
