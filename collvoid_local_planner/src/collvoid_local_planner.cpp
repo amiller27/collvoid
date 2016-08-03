@@ -130,6 +130,11 @@ namespace collvoid_local_planner {
             getParam(private_nh, "acc_lim_y", &acc_lim_y_);
             getParam(private_nh, "acc_lim_th", &acc_lim_th_);
 
+            // path reset parameters
+            getParam(private_nh, "path_reset_time", &path_reset_time_);
+            getParam(private_nh, "path_reset_tolerance_multiplier",
+                     &path_reset_tolerance_multiplier_);
+
             me_->setAccelerationConstraints(acc_lim_x_, acc_lim_y_, acc_lim_th_);
 
             //holo_robot
