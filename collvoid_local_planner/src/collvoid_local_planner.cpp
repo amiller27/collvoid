@@ -30,6 +30,7 @@
 
 #include <pluginlib/class_list_macros.h>
 #include <base_local_planner/goal_functions.h>
+#include <global_planner/planner_core.h>
 
 #include "collvoid_local_planner/collvoid_local_planner.h"
 
@@ -641,7 +642,38 @@ namespace collvoid_local_planner {
             }
 
             if ((ros::Time::now() - last_time_close_to_path_).toSec() > path_reset_time_) {
-                target_pose = last_point_close_to_path_;
+                if (!following_recovery_path_) {
+                    // calculate path back to last good point
+                    global_planner::GlobalPlanner planner(
+                            std::string("temp_replanner"),
+                            /* GLOBAL costmap */,
+                            global_frame_);
+
+                    geometry_msgs::PoseStamped last_good_pose_msg;
+                    tf::poseStampedTFToMsg(last_point_close_to_path_,
+                                           last_good_pose_msg);
+                    planner.makePlan(global_pose_msg, last_good_pose_msg,
+                                     me_->getRadius(), global_recovery_plan_);
+                    // FIX RADIUS ABOVE
+
+                    ROS_WARN("Recovery plan length: %lu", global_recovery_plan_.size());
+                    if (!transformGlobalPlan(*tf_, global_recovery_plan_, *costmap_ros_, global_frame_, transformed_recovery_plan_)) {
+                        ROS_WARN("Could not transform the global plan to the frame of the controller");
+                        return false;
+                    }
+
+                    following_recovery_path_ = true;
+                }
+
+                // set target_pose to the next point on this path
+                geometry_msgs::PoseStamped target_pose_msg;
+                current_waypoint_ = findBestWaypoint(
+                        transformed_recovery_plan_,
+                        target_pose_msg,
+                        global_pose);
+                tf::poseStampedMsgToTF(
+                        transformed_recovery_plan_[current_waypoint_],
+                        target_pose);
             }
             else {
                 following_recovery_path_ = false;

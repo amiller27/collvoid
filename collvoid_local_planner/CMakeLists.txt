@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(collvoid_local_planner)
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
-roslib roscpp collvoid_msgs collvoid_srvs visualization_msgs laser_geometry tf angles base_local_planner pluginlib nav_core actionlib move_base_msgs std_srvs dynamic_reconfigure amcl)
+roslib roscpp collvoid_msgs collvoid_srvs visualization_msgs laser_geometry tf angles base_local_planner pluginlib nav_core global_planner actionlib move_base_msgs std_srvs dynamic_reconfigure amcl)
 
 # include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 # CATKIN_MIGRATION: removed during catkin migration
@@ -63,7 +63,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 catkin_package(
     DEPENDS
     CATKIN_DEPENDS
-    roscpp collvoid_msgs visualization_msgs laser_geometry tf angles base_local_planner pluginlib nav_core actionlib move_base_msgs std_srvs dynamic_reconfigure amcl
+    roscpp collvoid_msgs visualization_msgs laser_geometry tf angles base_local_planner pluginlib nav_core global_planner actionlib move_base_msgs std_srvs dynamic_reconfigure amcl
       INCLUDE_DIRS include
     LIBRARIES collvoid_local_planner collvoid_scoring_function
 )
@@ -79,7 +79,7 @@ add_library(collvoid_scoring_function src/Agent.cpp src/publisher_helpers.cpp sr
 
 add_library(collvoid_local_planner src/collvoid_local_planner.cpp src/Agent.cpp src/ROSAgent.cpp src/orca.cpp src/collvoid_publishers.cpp src/clearpath.cpp)
 add_dependencies(collvoid_local_planner ${${PROJECT_NAME}_EXPORTED_TARGETS})
-add_dependencies(collvoid_local_planner collvoid_msgs_generate_messages_cpp)
+add_dependencies(collvoid_local_planner collvoid_msgs_generate_messages_cpp global_planner)
 
 target_link_libraries(collvoid_local_planner
   ${catkin_LIBRARIES}
