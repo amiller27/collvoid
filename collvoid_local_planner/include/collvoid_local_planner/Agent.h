@@ -57,6 +57,8 @@ namespace collvoid{
         void setRadius(double radius);
         void setTruncTime(double trunc_time);
         void setSimPeriod(double sim_period);
+        void setZeroVelocityParameters(double zero_velocity_reset_time,
+                                       double zero_velocity_threshold);
 
         double getRadius();
         collvoid::Vector2 getPosition();
@@ -110,7 +112,8 @@ namespace collvoid{
         std::vector<VelocitySample> samples_;
 
         // Clearpath times velocity has been near zero
-        int times_near_zero_;
+        double zero_velocity_reset_time_, zero_velocity_threshold_;
+        ros::Time last_nonzero_velocity_time_;
 
         std::vector<boost::shared_ptr<Agent> > agent_neighbors_, human_neighbors_;
 

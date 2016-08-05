@@ -51,4 +51,6 @@ CollvoidLocalPlanner:
   clearpath: true #clearpath or sampling 
   num_samples: 400 #num samples
   use_truncation: true #truncate vos
-  new_sampling: true
+
+  zero_velocity_reset_time: 1
+  zero_velocity_threshold: 0.075

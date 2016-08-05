@@ -78,12 +78,13 @@ namespace collvoid {
         }
         computeHumanVOs();
         //ROS_INFO("Human founds: %d", (int)human_vos_.size());
+        ros::Duration time_near_zero = ros::Time::now() - last_nonzero_velocity_time_;
+        bool add_bump_near_zero = (time_near_zero.toSec() > zero_velocity_reset_time_);
         new_velocity_ = calculateClearpathVelocity(samples_, all_vos_, human_vos_, agent_vos_, static_vos_, additional_orca_lines_,
-                                                   pref_velocity, velocity_, max_speed_x_, use_truncation_, new_sampling_, use_obstacles_, odom_pose_, heading_, footprint_spec_, costmap_, world_model_, times_near_zero_ > 10);
-        if (abs(new_velocity_) < 0.075) {
-            times_near_zero_++;
-        } else {
-            times_near_zero_ = 0;
+                                                   pref_velocity, velocity_, max_speed_x_, use_truncation_, new_sampling_, use_obstacles_, odom_pose_, heading_, footprint_spec_, costmap_, world_model_, add_bump_near_zero);
+
+        if (abs(new_velocity_) >= zero_velocity_threshold_) {
+            last_nonzero_velocity_time_ = ros::Time::now();
         }
     }
 
@@ -205,6 +206,19 @@ namespace collvoid {
 
     void Agent::setSimPeriod(double sim_period) {
         sim_period_ = sim_period;
+    }
+
+    void Agent::setZeroVelocityParameters(double zero_velocity_reset_time,
+            double zero_velocity_threshold) {
+        if (zero_velocity_reset_time >= 0
+                && !isnan(zero_velocity_reset_time)) {
+            zero_velocity_reset_time_ = zero_velocity_reset_time;
+        }
+
+        if (zero_velocity_threshold >= 0
+                && !isnan(zero_velocity_threshold)) {
+            zero_velocity_threshold_ = zero_velocity_threshold;
+        }
     }
 
 

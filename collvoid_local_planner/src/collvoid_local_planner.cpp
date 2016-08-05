@@ -274,6 +274,14 @@ namespace collvoid_local_planner {
                 me_->setFootprint(footprint);
             }
 
+            double zero_velocity_reset_time, zero_velocity_threshold;
+            getParam(private_nh, "zero_velocity_reset_time",
+                     &zero_velocity_reset_time);
+            getParam(private_nh, "zero_velocity_threshold",
+                     &zero_velocity_threshold);
+            me_->setZeroVelocityParameters(zero_velocity_reset_time,
+                                           zero_velocity_threshold);
+
             me_->initAsMe(tf_);
             me_->setId(my_id_);
 
@@ -388,6 +396,9 @@ namespace collvoid_local_planner {
         me_->setConvex(config.convex);
         me_->setUseTruncation(config.use_truncation);
         me_->setNumSamples(config.num_samples);
+
+        me_->setZeroVelocityParameters(config.zero_velocity_reset_time,
+                                       config.zero_velocity_threshold);
 
 
         last_config_ = config;

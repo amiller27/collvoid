@@ -37,3 +37,6 @@ CollvoidLocalPlanner:
   new_sampling: true
   use_truncation: true #truncate vos
 
+  zero_velocity_reset_time: 1
+  zero_velocity_threshold: 0.075
+
