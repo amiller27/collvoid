@@ -1118,6 +1118,8 @@ namespace collvoid {
             //    ROS_INFO("selected j %d, of size %d", optimal, (int) all_vos.size());
             if (d < 2 * EPSILON && (agent_vos.size() + human_vos.size()) >0 && collvoid::abs(pref_vel)>0.1) {
                 double bestDist = DBL_MAX;
+                double bestDistForBadFootprint = DBL_MAX;
+                Vector2 velForBadFootprint;
                 BOOST_FOREACH(VelocitySample& sample, samples_around_opt) {
                                 Vector2 vel = sample.velocity;
                                 if (isWithinAdditionalConstraints(additional_constraints, vel) &&
@@ -1126,6 +1128,15 @@ namespace collvoid {
                                     double pos_x, pos_y;
                                     pos_x = 0.1 * cur.velocity.x();
                                     pos_y = 0.1 * cur.velocity.y();
+
+                                    double cost = 0;
+                                    cost += 3 * sqrt(absSqr(cur.velocity - pref_vel));
+                                    cost += std::max(0., 2 * (1. - minDistToVOs(agent_vos, vel, use_truncation)));
+                                    cost += std::max(0., 3. * ( 1. - minDistToVOs(human_vos, vel, use_truncation)));
+                                    cost += 1 * sqrt(absSqr(cur.velocity - cur_vel));
+                                    if (add_cost_near_zero) {
+                                        cost += std::max(0., 2 * (1 - sqrt(absSqr(cur.velocity))));
+                                    }
 
                                     if (use_obstacles) {
                                         double footprint_cost = footprintCost(position.x() + pos_x,
@@ -1137,17 +1148,13 @@ namespace collvoid {
                                         if (footprint_cost < 0.) {
                                             sample.cost = -100;
 
+                                            if (cost < bestDistForBadFootprint) {
+                                                bestDistForBadFootprint = cost;
+                                                velForBadFootprint = vel;
+                                            }
+
                                             continue;
                                         }
-                                    }
-                                    double cost = 0;
-                                    cost += 3 * sqrt(absSqr(cur.velocity - pref_vel));
-                                    cost += std::max(0., 2 * (1. - minDistToVOs(agent_vos, vel, use_truncation)));
-                                    cost += std::max(0., 3. * ( 1. - minDistToVOs(human_vos, vel, use_truncation)));
-                                    cost += 1 * sqrt(absSqr(cur.velocity - cur_vel));
-                                    if (add_cost_near_zero) {
-                                        ROS_WARN("Adding cost near zero");
-                                        cost += std::max(0., 2 * (1 - sqrt(absSqr(cur.velocity))));
                                     }
 
                                     sample.cost = cost;
@@ -1162,6 +1169,11 @@ namespace collvoid {
                                 }
                             }
                 safeSamples.insert(safeSamples.end(), samples_around_opt.begin(), samples_around_opt.end());
+                if (bestDist == DBL_MAX) {
+                    ROS_ERROR("All sampled velocities collide with the map, using best cost ignoring footprint/map collision");
+                    new_vel = velForBadFootprint;
+
+                }
             }
 
             samples = safeSamples;
