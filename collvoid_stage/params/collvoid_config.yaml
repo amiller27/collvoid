@@ -1,5 +1,5 @@
 /noise_std: 0.0
-use_obstacles: false
+use_obstacles: true
 
 controller_frequency: 10
 yaw_goal_tolerance: 0.10
@@ -26,12 +26,12 @@ CollvoidLocalPlanner:
   publish_positions_frequency: 30
   publish_me_frequency: 30
 
-  trunc_time: 10.0
+  trunc_time: 5.0
   left_pref: -0.05
   eps: 0.1
   type_vo: 0 #HRVO = 0, RVO = 1, VO = 2
   orca: false #orca or VO
-  convex: true #footprint or radius
+  convex: false #footprint or radius
   clearpath: true #clearpath or sampling 
   num_samples: 400 #num samples
   new_sampling: true

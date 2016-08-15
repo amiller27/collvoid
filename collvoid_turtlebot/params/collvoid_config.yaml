@@ -5,7 +5,7 @@ CollvoidLocalPlanner:
   holo_robot: false
   wheel_base: 0.25
   
-  max_vel_x: 0.5
+  max_vel_x: 0.2
   max_vel_th: 1.7
   min_vel_x: 0.05
   min_vel_th: 0.1
@@ -36,7 +36,7 @@ CollvoidLocalPlanner:
   max_error_holo: 0.10
   delete_observations: true
   threshold_last_seen: 0.5
-  trunc_time: 10.0
+  trunc_time: 5.0
   left_pref: -0.05
 
   eps: 0.1
@@ -47,9 +47,10 @@ CollvoidLocalPlanner:
   type_vo: 0 #HRVO = 0, RVO = 1, VO = 2
 
   orca: false #orca or VO
-  convex: true #footprint or radius
+  convex: false #footprint or radius
   clearpath: true #clearpath or sampling 
   num_samples: 400 #num samples
+  new_sampling: true
   use_truncation: true #truncate vos
 
   zero_velocity_reset_time: 1
