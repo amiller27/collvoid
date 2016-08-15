@@ -20,12 +20,14 @@ IMG_SIZE_Y = 800
 
 
 class DetectObstacles(object):
-    def __init__(self):
+    def __init__(self, downsample_ratio = 1):
         self.tf_listener = tf.TransformListener()
         rospy.sleep(0.5)
         self.__angle_min = 0.0
         self.__angle_max = 0.0
         self.__cos_sin_map = np.array([[]])
+
+        self.__downsample_ratio = downsample_ratio
 
         self.current_obstacles = []
         self.polygon_pub = rospy.Publisher('obstacle_polygons', PolygonStamped, queue_size=1)
@@ -44,6 +46,10 @@ class DetectObstacles(object):
         :return:
         :rtype:
         """
+
+        msg.ranges = msg.ranges[::self.__downsample_ratio]
+        msg.angle_increment *= self.__downsample_ratio
+
         N = len(msg.ranges)
         ranges = np.array(msg.ranges)
         ranges = np.array([ranges, ranges])
@@ -180,7 +186,8 @@ if __name__ == '__main__':
     rospy.init_node('detect_obstacles')
     GLOBAL_FRAME = rospy.get_param('~global_frame', '/map')
     BASE_FRAME = rospy.get_param('~base_frame', 'base_link')
+    downsample_ratio = rospy.get_param('~downsample_ratio', 1)
 
-    detector = DetectObstacles()
+    detector = DetectObstacles(downsample_ratio)
     rospy.spin()
 
