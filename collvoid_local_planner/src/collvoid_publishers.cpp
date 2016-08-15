@@ -199,7 +199,7 @@ namespace collvoid {
 
 
     void publishOrcaLines(const std::vector<Line> &orca_lines, Vector2 &position, std::string base_frame,
-                          std::string name_space, ros::Publisher line_pub) {
+                          std::string name_space, ros::Publisher line_pub, ros::Publisher line_metadata_pub, size_t line_metadata_seq) {
         visualization_msgs::Marker line_list;
         line_list.header.frame_id = base_frame;
         line_list.header.stamp = ros::Time::now();
@@ -211,6 +211,8 @@ namespace collvoid {
         line_list.color.g = 1.0;
         line_list.color.a = 1.0;
         line_list.id = 1;
+        std::stringstream metadata;
+        metadata << "{\"timestamp\": " << line_list.header.stamp << ", \"data\": [";
         geometry_msgs::Point p;
         for (int i = 0; i < (int) orca_lines.size(); i++) {
             p.x = position.x() + orca_lines[i].point.x() - orca_lines[i].dir.x();
@@ -221,7 +223,20 @@ namespace collvoid {
             p.y = p.y + 3 * orca_lines[i].dir.y();
             line_list.points.push_back(p);
 
+            if (i > 0) metadata << ", ";
+            metadata << "{\"dir\": ";
+            if (orca_lines[i].dir * Vector2(-1, 0) > 0) {
+                metadata << "true";
+            } else {
+                metadata << "false";
+            }
+            metadata << "}";
         }
+        metadata << "], \"seq\": " << line_metadata_seq << "}";
+
+        std_msgs::String line_metadata;
+        line_metadata.data = metadata.str();
+        line_metadata_pub.publish(line_metadata);
         line_pub.publish(line_list);
 
     }

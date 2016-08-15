@@ -65,6 +65,7 @@ namespace collvoid {
         cur_allowed_error_ = 0;
         cur_loc_unc_radius_ = 0;
         min_dist_obst_ = DBL_MAX;
+        line_metadata_seq_ = 0;
     }
 
     void ROSAgent::init(ros::NodeHandle private_nh, tf::TransformListener *tf) {
@@ -188,6 +189,7 @@ namespace collvoid {
 
         me_pub_ = nh.advertise<visualization_msgs::MarkerArray>("me", 1);
         lines_pub_ = nh.advertise<visualization_msgs::Marker>("orca_lines", 1);
+        line_metadata_pub_ = nh.advertise<std_msgs::String>("orca_metadata", 1);
         samples_pub_ = nh.advertise<visualization_msgs::MarkerArray>("samples", 1);
         polygon_pub_ = nh.advertise<geometry_msgs::PolygonStamped>("convex_hull", 1);
         speed_pub_ = nh.advertise<visualization_msgs::Marker>("speed", 1);
@@ -313,18 +315,33 @@ namespace collvoid {
         //incorporate NH constraints
         max_speed_x_ = max_vel_x_;
 
+        std::stringstream metadata;
+        metadata << "{\"counts\": {";
+
         if (!holo_robot_) {
             addNHConstraints(min_dist, pref_velocity);
         }
+
+        metadata << "\"nhconstraints\": " << additional_orca_lines_.size();
+
         //add acceleration constraints
         addAccelerationConstraintsXY(max_vel_x_, acc_lim_x_, max_vel_y_, acc_lim_y_, velocity_, heading_, sim_period_,
                                      holo_robot_, additional_orca_lines_);
+
+        metadata << ", \"accelconstraints\": " << additional_orca_lines_.size();
 
         all_vos_.clear();
         static_vos_.clear();
         human_vos_.clear();
         agent_vos_.clear();
         computeObstacles();
+
+        metadata << ", \"obstacles\": " << additional_orca_lines_.size();
+        metadata << "}, \"seq\": " << line_metadata_seq_ << "}";
+
+        std_msgs::String metadata_msg;
+        metadata_msg.data = metadata.str();
+        line_metadata_pub_.publish(metadata_msg);
 
         if (orca_) {
             computeOrcaVelocity(pref_velocity);
@@ -404,6 +421,7 @@ namespace collvoid {
                 cmd_vel.angular.z = sign(dif_ang) * std::min(std::abs(dif_ang), max_vel_th_);
         }
 
+        line_metadata_seq_++;
     }
 
 
@@ -434,7 +452,7 @@ namespace collvoid {
         publishVOs(position_, all_vos_, use_truncation_, global_frame_, base_frame_, vo_pub_);
 
         publishPoints(position_, samples_, global_frame_, base_frame_, samples_pub_);
-        publishOrcaLines(additional_orca_lines_, position_, global_frame_, base_frame_, lines_pub_);
+        publishOrcaLines(additional_orca_lines_, position_, global_frame_, base_frame_, lines_pub_, line_metadata_pub_, line_metadata_seq_);
 
     }
 
@@ -470,7 +488,7 @@ namespace collvoid {
         publishHoloSpeed(position_, new_velocity_, global_frame_, base_frame_, speed_pub_);
         publishVOs(position_, all_vos_, use_truncation_, global_frame_, base_frame_, vo_pub_);
         publishPoints(position_, samples_, global_frame_, base_frame_, samples_pub_);
-        publishOrcaLines(additional_orca_lines_, position_, global_frame_, base_frame_, lines_pub_);
+        publishOrcaLines(additional_orca_lines_, position_, global_frame_, base_frame_, lines_pub_, line_metadata_pub_, line_metadata_seq_);
 
     }
 
@@ -480,8 +498,27 @@ namespace collvoid {
 
         // publish calcuated speed and orca_lines
         publishHoloSpeed(position_, new_velocity_, global_frame_, base_frame_, speed_pub_);
-        publishOrcaLines(orca_lines_, position_, global_frame_, base_frame_, lines_pub_);
+        publishOrcaLines(orca_lines_, position_, global_frame_, base_frame_, lines_pub_, line_metadata_pub_, line_metadata_seq_);
 
+        std::stringstream s;
+        s << "{\"neighbors\": [";
+        for (int i = 0; i < agent_neighbors_.size(); i++) {
+            ROSAgentPtr agent = boost::dynamic_pointer_cast<ROSAgent>(agent_neighbors_[i]);
+            if (i != 0) s << ", ";
+            s << "{\"name\": \"";
+            s << agent->id_;
+            s << "\", \"position\": {\"x\": ";
+            s << agent->position_.x();
+            s << ", \"y\": " << agent->position_.y();
+            s << "}, \"velocity\": {\"x\": }";
+            s << agent->velocity_.x();
+            s << ", \"y\": " << agent->velocity_.y();
+            s << "}}";
+        }
+        s << "], \"seq\": " << line_metadata_seq_ << "}";
+        std_msgs::String str;
+        str.data = s.str();
+        line_metadata_pub_.publish(str);
     }
 
     void ROSAgent::addNHConstraints(double min_dist, Vector2 pref_velocity) {

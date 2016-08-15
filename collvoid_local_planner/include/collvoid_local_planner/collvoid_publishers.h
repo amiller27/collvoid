@@ -31,6 +31,7 @@
 #define COLLVOID_PUBLISHERS_H
 
 /* #include <ros/ros.h> */
+#include <std_msgs/String.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include "collvoid_local_planner/ROSAgent.h"
@@ -44,7 +45,7 @@ namespace collvoid {
   void publishVOs(Vector2& pos, const std::vector<VO>& truncated_vos, bool use_truncation, std::string base_frame, std::string name_space, ros::Publisher vo_pub);
   
   void publishPoints(Vector2& pos, const std::vector<VelocitySample>& points, std::string base_frame, std::string name_space, ros::Publisher samples_pub);
-  void publishOrcaLines(const std::vector<Line>& orca_lines, Vector2& position, std::string base_frame, std::string name_space, ros::Publisher line_pub);
+  void publishOrcaLines(const std::vector<Line>& orca_lines, Vector2& position, std::string base_frame, std::string name_space, ros::Publisher line_pub, ros::Publisher line_metadata_pub, size_t line_metadata_seq);
 
   void publishObstacleLines(const std::vector<Obstacle>& obstacles_lines, std::string base_frame, std::string name_space, ros::Publisher line_pub);
   
