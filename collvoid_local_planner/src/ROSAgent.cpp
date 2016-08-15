@@ -743,25 +743,25 @@ namespace collvoid {
 
     void ROSAgent::createObstacleLine(std::vector<Vector2> &own_footprint, Vector2 &obst1, Vector2 &obst2) {
         Vector2 null = Vector2(0,0);
-        double dist = distSqPointLineSegment(obst1, obst2, null);
+        double dist = distSqPointLineSegment(obst1, obst2, position_);
 
-        if (dist == absSqr(obst1)) {
+        if (dist == absSqr(obst1 - position_)) {
             computeObstacleLine(obst1);
         }
-        else if (dist == absSqr(obst2)) {
+        else if (dist == absSqr(obst2 - position_)) {
             computeObstacleLine(obst2);
         }
             // if (false) {
             // }
         else {
-            Vector2 position_obst = projectPointOnLine(obst1, obst2 - obst1, null);
+            Vector2 position_obst = projectPointOnLine(obst1 - position_, obst2 - obst1, null);
             Vector2 rel_position = position_obst;
             dist = std::sqrt(dist);
             double dist_to_footprint = getDistToFootprint(rel_position);
             if (dist_to_footprint == -1) {
                 dist_to_footprint = footprint_radius_;
             }
-            dist = dist - dist_to_footprint - 0.03;
+            dist = dist - dist_to_footprint - cur_loc_unc_radius_;// - 0.03;
 
             if (dist < 0.0) {
                 Line line;
