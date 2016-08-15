@@ -1116,7 +1116,10 @@ namespace collvoid {
                                           25);
             }
             //    ROS_INFO("selected j %d, of size %d", optimal, (int) all_vos.size());
-            if (d < 2 * EPSILON && (agent_vos.size() + human_vos.size()) >0 && collvoid::abs(pref_vel)>0.1) {
+
+            // resample if the selected velocity is near a VO, and we have at least one other active agent, and our desired velocity is nonzero
+            //if (d < 2 * EPSILON && (agent_vos.size() + human_vos.size()) >0 && collvoid::abs(pref_vel)>0.1) {
+            if (true) {
                 double bestDist = DBL_MAX;
                 double bestDistForBadFootprint = DBL_MAX;
                 Vector2 velForBadFootprint;
