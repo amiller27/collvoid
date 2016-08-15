@@ -1093,9 +1093,9 @@ namespace collvoid {
                 safeSamples.push_back(samples[i]);
             }
             if (valid && !withinConstraints && !foundOutside) {
-                optimal = all_vos.size();
-                new_vel = samples[i].velocity;
-                foundOutside = true;
+                //optimal = all_vos.size();
+                //new_vel = samples[i].velocity;
+                //foundOutside = true;
                 //TODO project on movement constraints
             }
 
